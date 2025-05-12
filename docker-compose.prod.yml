@@ -26,8 +26,8 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ios_file_uploader_postgres_data:/var/lib/postgresql/data
     ports:
       - "5433:5433"
 volumes:
-  postgres_data:
+  ios_file_uploader_postgres_data:
