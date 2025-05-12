@@ -32,7 +32,7 @@ jobs:
       # Deployment
       - uses: webfactory/ssh-agent@v0.7.0
         with:
-          ssh-private-key: $SSH_KEY
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
 
       - name: Setup SSH
         run: |
