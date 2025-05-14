@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.filestorage.grpc";
+option java_outer_classname = "FileStorageProto";
+
+service FileStorageService {
+  rpc saveFile(GrpcFileAccessSaveRequest) returns (GrpcFileAccessSaveResponse);
+  rpc saveFileTest(GrpcFileAccessSaveRequest) returns (GrpcFileAccessSaveResponse);
+  rpc saveFileStream(stream GrpcFileChunk) returns (GrpcFileAccessSaveResponse);
+}
+
+message GrpcFileAccessSaveRequest {
+  string id = 1;
+  bytes contents = 2;
+  string filename = 3;
+  string content_type = 4;
+}
+
+message GrpcFileAccessSaveResponse {
+  bool success = 1;
+  string message = 2;
+  string file_id = 3;
+  int64 size = 4;
+}
+
+message GrpcFileChunk {
+  string id = 1;
+
+  bytes chunk = 2;
+
+  int32 chunk_number = 3;
+
+  string filename = 4;
+
+  string content_type = 5;
+}
