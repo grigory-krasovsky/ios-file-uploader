@@ -1,0 +1,1 @@
+ALTER TABLE processed_url RENAME TO processed_file;

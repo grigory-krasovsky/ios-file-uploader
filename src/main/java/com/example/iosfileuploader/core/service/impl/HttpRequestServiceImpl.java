@@ -1,0 +1,58 @@
+package com.example.iosfileuploader.core.service.impl;
+
+import com.example.iosfileuploader.adapter.dto.request.FileLocationCreateRequest;
+import com.example.iosfileuploader.adapter.dto.response.FileLocationCreateResponse;
+import com.example.iosfileuploader.core.service.HttpRequestService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.UUID;
+
+@Service
+public class HttpRequestServiceImpl implements HttpRequestService {
+    @Override
+    public String getResponse(HttpRequest request) {
+        HttpClient client = HttpClient.newHttpClient();
+        HttpResponse<String> response;
+        try {
+            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return response.body();
+    }
+
+    @Override
+    public UUID createNewFileLocation() {
+        FileLocationCreateRequest body = FileLocationCreateRequest.createNew();
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonBody;
+        try {
+            jsonBody = objectMapper.writeValueAsString(body);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/file/location"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+
+        FileLocationCreateResponse response;
+        try {
+            response = objectMapper.readValue(
+                    getResponse(request),
+                    FileLocationCreateResponse.class
+            );
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return response.getFileLocationUUID();
+    }
+}
