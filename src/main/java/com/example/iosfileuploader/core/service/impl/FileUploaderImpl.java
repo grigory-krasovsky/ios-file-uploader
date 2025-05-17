@@ -2,21 +2,24 @@ package com.example.iosfileuploader.core.service.impl;
 
 import com.example.iosfileuploader.adapter.dto.FileTransferRequest;
 import com.example.iosfileuploader.core.service.*;
+import com.example.iosfileuploader.core.utils.SystemParameterManager;
 import com.example.iosfileuploader.core.utils.http.HttpRequestService;
 import com.example.iosfileuploader.domain.entity.ProcessedFile;
 import com.example.iosfileuploader.domain.entity.SharedAlbum;
 import com.example.iosfileuploader.domain.enums.FileTransferStatus;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.apache.tika.Tika;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class FileUploaderImpl implements FileUploader {
     SharedAlbumService sharedAlbumService;
@@ -25,10 +28,11 @@ public class FileUploaderImpl implements FileUploader {
     ProcessedFileService processedFileService;
     FileTransferEngine fileTransferEngine;
     HttpRequestService httpRequestService;
+    SystemParameterManager systemParameterManager;
 
     public void uploadForEnabledAlbums() {
 
-        long maxSize = 4 * 1024 * 1204;
+        Long maxSize = systemParameterManager.getParam("fileMaxSize", Long.class);
 
         Tika tika = new Tika();
         List<SharedAlbum> enabledAlbums = sharedAlbumService.findAllEnabled();
@@ -42,7 +46,6 @@ public class FileUploaderImpl implements FileUploader {
 
                 List<Pair<String, byte[]>> fileBatch = new ArrayList<>();
                 namesUrls.forEach(nameUrl -> {
-                    httpRequestService.checkFileSize(nameUrl.getSecond());
                     fileBatch.add(Pair.of(nameUrl.getFirst(), fileDownloader.downloadFile(nameUrl.getSecond())));
                 });
                 processedFileService.create(ProcessedFile.builder()
@@ -52,9 +55,12 @@ public class FileUploaderImpl implements FileUploader {
                         .build());
 
                 //we do not need previews
-                Pair<String, byte[]> asset = fileBatch.stream().max(Comparator.comparing(pair -> pair.getSecond().length)).orElseThrow(() -> new RuntimeException("Batch is empty"));
+                Pair<String, byte[]> asset = fileBatch.stream()
+                        .max(Comparator.comparing(pair -> pair.getSecond().length))
+                        .orElseThrow(() -> new RuntimeException("Batch is empty"));
 
                 UUID newFileLocationUuid = httpRequestService.createNewFileLocation();
+
                 String contentType;
                 String fileName;
                 contentType = tika.detect(asset.getSecond());

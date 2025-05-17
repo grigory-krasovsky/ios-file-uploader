@@ -2,8 +2,11 @@ package com.example.iosfileuploader.core.utils.http;
 
 import com.example.iosfileuploader.adapter.dto.request.FileLocationCreateRequest;
 import com.example.iosfileuploader.adapter.dto.response.FileLocationCreateResponse;
+import com.example.iosfileuploader.core.utils.SystemParameterManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -14,7 +17,9 @@ import java.net.http.HttpResponse;
 import java.util.UUID;
 
 @Service
+@AllArgsConstructor
 public class HttpRequestServiceImpl implements HttpRequestService {
+    SystemParameterManager systemParameterManager;
     @Override
     public String getResponse(HttpRequest request) {
         HttpClient client = HttpClient.newHttpClient();
@@ -29,6 +34,9 @@ public class HttpRequestServiceImpl implements HttpRequestService {
 
     @Override
     public UUID createNewFileLocation() {
+        String baseUrl = systemParameterManager.getParam("fileStorageBaseUrl", String.class);
+        System.out.println("baseUrl " + baseUrl);
+
         FileLocationCreateRequest body = FileLocationCreateRequest.createNew();
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonBody;
@@ -38,7 +46,7 @@ public class HttpRequestServiceImpl implements HttpRequestService {
             throw new RuntimeException(e);
         }
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8080/api/file/location"))
+                .uri(URI.create(baseUrl + "/api/file/location"))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                 .build();

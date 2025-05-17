@@ -28,3 +28,16 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     clean-disabled: true
+grpc:
+  client:
+    file-storage:
+      address: static://app:9090
+      negotiationType: plaintext
+
+file-storage-base-url: http://file-storage-app-1:8080
+file-max-size: 4194304
+buffer-size: 4096
+chunk-size: 65536
+grpc-server:
+  domain: app
+  port: 9090

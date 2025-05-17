@@ -2,6 +2,7 @@ package com.example.iosfileuploader.core.service.impl;
 
 import com.example.iosfileuploader.adapter.dto.FileTransferRequest;
 import com.example.iosfileuploader.core.service.FileTransferEngine;
+import com.example.iosfileuploader.core.utils.SystemParameterManager;
 import com.example.iosfileuploader.core.utils.grpc.FileChunkSender;
 import com.example.iosfileuploader.core.utils.grpc.FileStreamer;
 import com.example.iosfileuploader.core.utils.grpc.LoggerResponseHandler;
@@ -11,21 +12,26 @@ import com.filestorage.grpc.GrpcFileAccessSaveRequest;
 import com.filestorage.grpc.GrpcFileAccessSaveResponse;
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 
 @Service
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class FileTransferEngineImpl implements FileTransferEngine {
 
-    private final ManagedChannel channel;
+    final SystemParameterManager systemParameterManager;
+    final ManagedChannel channel;
     @GrpcClient("file-storage")
-    private FileStorageServiceGrpc.FileStorageServiceBlockingStub blockingStub;
+    FileStorageServiceGrpc.FileStorageServiceBlockingStub blockingStub;
     @GrpcClient("file-storage")
-    private FileStorageServiceGrpc.FileStorageServiceStub asyncStub;
+    FileStorageServiceGrpc.FileStorageServiceStub asyncStub;
 
-    public FileTransferEngineImpl(ManagedChannel channel) {
+    public FileTransferEngineImpl(ManagedChannel channel, SystemParameterManager systemParameterManager) {
+        this.systemParameterManager = systemParameterManager;
         this.channel = channel;
     }
 
@@ -46,7 +52,7 @@ public class FileTransferEngineImpl implements FileTransferEngine {
     public void transferFileStreaming(FileTransferRequest request) {
 
         StreamResponseHandler handler = new LoggerResponseHandler();
-
+        Integer chunkSize = systemParameterManager.getParam("chunkSize", Integer.class);
         // Start streaming
         FileChunkSender sender = new FileStreamer(asyncStub).startStreamingUpload(
                 request.getId(),
@@ -56,7 +62,6 @@ public class FileTransferEngineImpl implements FileTransferEngine {
         try {
             // Split and send chunks
             byte[] data = request.getData();
-            int chunkSize = 64 * 1024; // 64KB chunks
             int totalChunks = (int) Math.ceil((double) data.length / chunkSize);
 
             for (int i = 0; i < totalChunks; i++) {

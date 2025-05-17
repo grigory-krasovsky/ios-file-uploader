@@ -22,7 +22,7 @@ public class FileLocationCreateRequest {
     public static FileLocationCreateRequest createNew() {
         return FileLocationCreateRequest.builder()
                 .fileMetadataDTO(FileLocationCreateRequest.FileMetadataDto.builder()
-                        .author("Test2219")
+                        .author("Default")
                         .build())
                 .build();
     }

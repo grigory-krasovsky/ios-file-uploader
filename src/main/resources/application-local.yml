@@ -33,3 +33,11 @@ grpc:
     file-storage:
       address: static://localhost:9090
       negotiationType: plaintext
+
+file-storage-base-url: http://localhost:8080
+file-max-size: 4194304
+buffer-size: 4096
+chunk-size: 65536
+grpc-server:
+  domain: localhost
+  port: 9090

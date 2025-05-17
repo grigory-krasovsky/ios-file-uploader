@@ -1,16 +1,22 @@
 package com.example.iosfileuploader.core.service.impl;
 
 import com.example.iosfileuploader.core.service.FileDownloader;
+import com.example.iosfileuploader.core.utils.SystemParameterManager;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 @Service
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class FileDownloaderImpl implements FileDownloader {
+    SystemParameterManager systemParameterManager;
     @Override
     public byte[] downloadFile(String url) {
         return getFileBytesFromUrl(url);
@@ -20,7 +26,7 @@ public class FileDownloaderImpl implements FileDownloader {
         try (InputStream fileStream = new URL(fileUrl).openStream();
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
 
-            byte[] buffer = new byte[4096];  // 4KB buffer
+            byte[] buffer = new byte[systemParameterManager.getParam("bufferSize", Integer.class)];
             int bytesRead;
 
             while ((bytesRead = fileStream.read(buffer)) != -1) {
