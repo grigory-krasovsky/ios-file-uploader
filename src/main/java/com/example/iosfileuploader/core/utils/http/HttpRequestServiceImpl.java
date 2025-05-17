@@ -1,8 +1,7 @@
-package com.example.iosfileuploader.core.service.impl;
+package com.example.iosfileuploader.core.utils.http;
 
 import com.example.iosfileuploader.adapter.dto.request.FileLocationCreateRequest;
 import com.example.iosfileuploader.adapter.dto.response.FileLocationCreateResponse;
-import com.example.iosfileuploader.core.service.HttpRequestService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
@@ -54,5 +53,14 @@ public class HttpRequestServiceImpl implements HttpRequestService {
             throw new RuntimeException(e);
         }
         return response.getFileLocationUUID();
+    }
+
+    @Override
+    public void checkFileSize(String url) {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .method("HEAD", HttpRequest.BodyPublishers.noBody())
+                .build();
+        getResponse(request);
     }
 }

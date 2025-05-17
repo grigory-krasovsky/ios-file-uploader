@@ -1,8 +1,7 @@
 package com.example.iosfileuploader.core.service.impl;
 
-import com.example.iosfileuploader.adapter.dto.FileForTransferDto;
 import com.example.iosfileuploader.core.service.FileDownloadUrlScraper;
-import com.example.iosfileuploader.core.service.HttpRequestService;
+import com.example.iosfileuploader.core.utils.http.HttpRequestService;
 import com.example.iosfileuploader.core.service.ProcessedFileService;
 import com.example.iosfileuploader.domain.entity.ProcessedFile;
 import com.example.iosfileuploader.domain.entity.SharedAlbum;
@@ -16,11 +15,8 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -68,7 +64,7 @@ public class FileDownloadUrlScraperImpl implements FileDownloadUrlScraper {
     public void storeFilesGuids(SharedAlbum album) {
         Set<String> assetsGuilds = getAssetsGuilds(album.getAlbumId());
         //Todo optimize
-        Set<String> freshGuids = assetsGuilds.stream().filter(processedFileService::transferIsPossible).collect(Collectors.toSet());
+        Set<String> freshGuids = assetsGuilds.stream().filter(processedFileService::guidStorageIsPossible).collect(Collectors.toSet());
         List<ProcessedFile> processedFiles = freshGuids.stream().map(guid -> {
             ProcessedFile file = ProcessedFile.builder()
                     .status(FileTransferStatus.FILE_GUID_ACQUIRED)

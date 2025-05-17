@@ -21,6 +21,11 @@ public class ProcessedFileServiceImpl extends AbstractEntityService<ProcessedFil
     }
 
     @Override
+    public Boolean guidStorageIsPossible(String fileId) {
+        return !repository.existsByFileIdAndStatusIn(fileId, List.of(FileTransferStatus.FILE_GUID_ACQUIRED));
+    }
+
+    @Override
     public List<ProcessedFile> getFreshGuids() {
         return repository.getAllByStatus(FileTransferStatus.FILE_GUID_ACQUIRED);
     }

@@ -2,57 +2,37 @@ package com.example.iosfileuploader.core.service.impl;
 
 import com.example.iosfileuploader.adapter.dto.FileTransferRequest;
 import com.example.iosfileuploader.core.service.FileTransferEngine;
+import com.example.iosfileuploader.core.utils.grpc.FileChunkSender;
+import com.example.iosfileuploader.core.utils.grpc.FileStreamer;
+import com.example.iosfileuploader.core.utils.grpc.LoggerResponseHandler;
+import com.example.iosfileuploader.core.utils.grpc.StreamResponseHandler;
 import com.filestorage.grpc.FileStorageServiceGrpc;
 import com.filestorage.grpc.GrpcFileAccessSaveRequest;
 import com.filestorage.grpc.GrpcFileAccessSaveResponse;
 import com.google.protobuf.ByteString;
+import io.grpc.ManagedChannel;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.UUID;
+import java.util.Arrays;
 
 @Service
 public class FileTransferEngineImpl implements FileTransferEngine {
 
+    private final ManagedChannel channel;
     @GrpcClient("file-storage")
     private FileStorageServiceGrpc.FileStorageServiceBlockingStub blockingStub;
+    @GrpcClient("file-storage")
+    private FileStorageServiceGrpc.FileStorageServiceStub asyncStub;
 
-    public String uploadFile() throws IOException {
-
-
-        byte[] fileBytesFromUrl = getFileBytesFromUrl("https://cvws.icloud-content.com/S/AemeoCQ6b3e2ZnlMsqoiip_zlHkN/camphoto_959030623.jpg?o=Asd7SQGN-S0trtvVRsYaZVP-lenseEgo1Dx1E-VEHt4g&v=1&z=https%3A%2F%2Fp113-content.icloud.com%3A443&x=1&a=CAogMGE2jvxf40ZtkORtNVkf1dUEE90Y92xEwMy2HVBLwtESZRDd__Ty7DIY3ZaI-OwyIgEAUgTzlHkNaiWwxmcgBfs75tMGfUnjXqWLcwiqC7HeK-nDnYNze3t4ctw5sPB9ciXENhu_r8S4j0CulQa3l8eQzGsb_eQZJ7oxvu6a6SmQXgdZV-UD&e=1747229739&r=d868f3b9-3eb9-4d92-99b5-099352c8f655-4&s=0-foXxfB2oKlH-jbcu05sswgH-c");
-
-        GrpcFileAccessSaveRequest request = GrpcFileAccessSaveRequest.newBuilder()
-                .setId(UUID.randomUUID().toString())
-                .setContents(ByteString.copyFrom(fileBytesFromUrl))
-                .setFilename("filename.jpg")
-                .build();
-
-        GrpcFileAccessSaveResponse response = blockingStub.saveFile(request);
-        return response.getFileId();
-    }
-
-    private byte[] getFileBytesFromUrl(String photoUrl) throws IOException {
-        try (InputStream fileStream = new URL(photoUrl).openStream();
-             ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-
-            byte[] buffer = new byte[4096];  // 4KB buffer
-            int bytesRead;
-
-            while ((bytesRead = fileStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-
-            return outputStream.toByteArray();
-        }
+    public FileTransferEngineImpl(ManagedChannel channel) {
+        this.channel = channel;
     }
 
     @Override
     public void transferFile(FileTransferRequest request) {
+
+        FileStorageServiceGrpc.FileStorageServiceBlockingStub blockingStub = FileStorageServiceGrpc.newBlockingStub(channel);
 
         GrpcFileAccessSaveResponse response = blockingStub.saveFile(GrpcFileAccessSaveRequest.newBuilder()
                 .setId(request.getId())
@@ -61,5 +41,34 @@ public class FileTransferEngineImpl implements FileTransferEngine {
                 .setContentType(request.getContentType())
                 .build());
     }
+
+    @Override
+    public void transferFileStreaming(FileTransferRequest request) {
+
+        StreamResponseHandler handler = new LoggerResponseHandler();
+
+        // Start streaming
+        FileChunkSender sender = new FileStreamer(asyncStub).startStreamingUpload(
+                request.getId(),
+                request.getFileName(),
+                request.getContentType(),
+                handler);
+        try {
+            // Split and send chunks
+            byte[] data = request.getData();
+            int chunkSize = 64 * 1024; // 64KB chunks
+            int totalChunks = (int) Math.ceil((double) data.length / chunkSize);
+
+            for (int i = 0; i < totalChunks; i++) {
+                int start = i * chunkSize;
+                int end = Math.min(start + chunkSize, data.length);
+                byte[] chunk = Arrays.copyOfRange(data, start, end);
+                sender.sendChunk(chunk, i + 1);
+            }
+
+            sender.complete();
+        } catch (Exception e) {
+            sender.cancel(e);
+        }
+    }
 }
-//https://cvws.icloud-content.com/S/AemeoCQ6b3e2ZnlMsqoiip_zlHkN/camphoto_959030623.jpg?o=AswWbHlgqAB7sN-kMjGv0D5VrhnHgg023Ief3nlenITo&v=1&z=https%3A%2F%2Fp113-content.icloud.com%3A443&x=1&a=CAogQWEd1qpjFWg66r6tRNfXvDwBitw0fYT7oZxLH31DPq8SZRCx34WB7TIYsfaYhu0yIgEAUgTzlHkNaiUuF8LgAb1CHmvqin0pD87ju6eZoWJ9rmOof-n481jYwqAMbQsWciW6fQHzbnM8iqtEHsyVkxEkhCYOHoVUMYaECTsCK9NOaXKzWFzk&e=1747259374&r=b172e38e-5156-4cbc-9d4a-93f0f6ed30eb-3&s=WCvAAhJfAbCM-xtBoTfYXLqry3w

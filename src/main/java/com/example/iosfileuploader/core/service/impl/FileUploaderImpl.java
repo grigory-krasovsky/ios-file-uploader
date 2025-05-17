@@ -2,6 +2,7 @@ package com.example.iosfileuploader.core.service.impl;
 
 import com.example.iosfileuploader.adapter.dto.FileTransferRequest;
 import com.example.iosfileuploader.core.service.*;
+import com.example.iosfileuploader.core.utils.http.HttpRequestService;
 import com.example.iosfileuploader.domain.entity.ProcessedFile;
 import com.example.iosfileuploader.domain.entity.SharedAlbum;
 import com.example.iosfileuploader.domain.enums.FileTransferStatus;
@@ -9,23 +10,15 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.apache.tika.Tika;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.metadata.TikaCoreProperties;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class FileUploaderImpl implements FileUploader {
-
     SharedAlbumService sharedAlbumService;
     FileDownloader fileDownloader;
     FileDownloadUrlScraper fileDownloadUrlScraper;
@@ -35,10 +28,12 @@ public class FileUploaderImpl implements FileUploader {
 
     public void uploadForEnabledAlbums() {
 
+        long maxSize = 4 * 1024 * 1204;
+
         Tika tika = new Tika();
         List<SharedAlbum> enabledAlbums = sharedAlbumService.findAllEnabled();
         List<ProcessedFile> filesReadyForDownload = processedFileService.getFreshGuids().stream()
-                .limit(1) //debug purpose
+//                .limit(1)
                 .toList();
 
         enabledAlbums.forEach(album -> {
@@ -47,29 +42,37 @@ public class FileUploaderImpl implements FileUploader {
 
                 List<Pair<String, byte[]>> fileBatch = new ArrayList<>();
                 namesUrls.forEach(nameUrl -> {
+                    httpRequestService.checkFileSize(nameUrl.getSecond());
                     fileBatch.add(Pair.of(nameUrl.getFirst(), fileDownloader.downloadFile(nameUrl.getSecond())));
                 });
                 processedFileService.create(ProcessedFile.builder()
-                                .status(FileTransferStatus.FILE_BATCH_DOWNLOAD_SUCCESS)
-                                .sharedAlbum(album)
-                                .fileId(file.getFileId())
+                        .status(FileTransferStatus.FILE_BATCH_DOWNLOAD_SUCCESS)
+                        .sharedAlbum(album)
+                        .fileId(file.getFileId())
                         .build());
 
-                fileBatch.forEach(asset -> {
-                    UUID newFileLocationUuid = httpRequestService.createNewFileLocation();
-                    String contentType;
-                    String fileName;
-                    contentType = tika.detect(asset.getSecond());
-                    fileName = asset.getFirst();
+                //we do not need previews
+                Pair<String, byte[]> asset = fileBatch.stream().max(Comparator.comparing(pair -> pair.getSecond().length)).orElseThrow(() -> new RuntimeException("Batch is empty"));
 
-                    FileTransferRequest fileToTransfer = FileTransferRequest.builder()
-                            .id(newFileLocationUuid.toString())
-                            .contentType(contentType)
-                            .fileName(fileName)
-                            .data(asset.getSecond())
-                            .build();
+                UUID newFileLocationUuid = httpRequestService.createNewFileLocation();
+                String contentType;
+                String fileName;
+                contentType = tika.detect(asset.getSecond());
+                fileName = asset.getFirst();
+
+                FileTransferRequest fileToTransfer = FileTransferRequest.builder()
+                        .id(newFileLocationUuid.toString())
+                        .contentType(contentType)
+                        .fileName(fileName)
+                        .data(asset.getSecond())
+                        .build();
+
+                if (fileToTransfer.getData().length > maxSize) {
+                    fileTransferEngine.transferFileStreaming(fileToTransfer);
+                } else {
                     fileTransferEngine.transferFile(fileToTransfer);
-                });
+                }
+                ;
                 processedFileService.create(ProcessedFile.builder()
                         .status(FileTransferStatus.FILE_BATCH_TRANSFER_SUCCESS)
                         .sharedAlbum(album)
@@ -77,5 +80,6 @@ public class FileUploaderImpl implements FileUploader {
                         .build());
             });
         });
+        System.out.println("");
     }
 }

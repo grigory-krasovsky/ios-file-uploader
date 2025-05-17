@@ -7,4 +7,5 @@ import java.util.List;
 public interface ProcessedFileService extends CRUDService<ProcessedFile> {
     Boolean transferIsPossible(String fileId);
     List<ProcessedFile> getFreshGuids();
+    Boolean guidStorageIsPossible(String fileId);
 }
