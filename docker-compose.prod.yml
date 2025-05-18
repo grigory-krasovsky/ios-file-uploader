@@ -13,7 +13,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-
+    networks:
+      - grpc-network-1
   db:
     image: postgres:15-alpine
     command: ["postgres", "-p", "5433"]
@@ -30,5 +31,10 @@ services:
       - ios_file_uploader_postgres_data:/var/lib/postgresql/data
     ports:
       - "5433:5433"
+    networks:
+      - grpc-network-1
+networks:
+  grpc-network-1:
+    external: true
 volumes:
   ios_file_uploader_postgres_data:
