@@ -27,6 +27,6 @@ public class ProcessedFileServiceImpl extends AbstractEntityService<ProcessedFil
 
     @Override
     public List<ProcessedFile> getFreshGuids() {
-        return repository.getAllByStatus(FileTransferStatus.FILE_GUID_ACQUIRED);
+        return repository.getAllByStatusesAndNotByStatuses(List.of(FileTransferStatus.FILE_GUID_ACQUIRED.name()), List.of(FileTransferStatus.FILE_BATCH_TRANSFER_SUCCESS.name(), FileTransferStatus.TRANSFER_IN_PROGRESS.name()));
     }
 }

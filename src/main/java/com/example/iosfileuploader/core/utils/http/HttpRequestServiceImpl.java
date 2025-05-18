@@ -35,7 +35,6 @@ public class HttpRequestServiceImpl implements HttpRequestService {
     @Override
     public UUID createNewFileLocation() {
         String baseUrl = systemParameterManager.getParam("fileStorageBaseUrl", String.class);
-        System.out.println("baseUrl " + baseUrl);
 
         FileLocationCreateRequest body = FileLocationCreateRequest.createNew();
         ObjectMapper objectMapper = new ObjectMapper();
