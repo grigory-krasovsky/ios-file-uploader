@@ -11,6 +11,9 @@ spring:
     url: jdbc:postgresql://db:5433/ios-file-uploader
     username: admin
     password: admin
+    hikari:
+      connection-timeout: 30000
+      initialization-fail-timeout: -1
     driver-class-name: org.postgresql.Driver
     jpa:
       hibernate:
