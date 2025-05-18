@@ -5,6 +5,7 @@ services:
     image: iceteagreen/ios-file-uploader:latest
     ports:
       - "8081:8081"
+      - "5005:5005"
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5433/ios-file-uploader
