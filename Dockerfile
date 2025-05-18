@@ -15,5 +15,14 @@ FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
 COPY --from=build /app/target/*.jar app.jar
+
+# ✅ Copy the wait script into the image
+COPY wait-for-db.sh /app/wait-for-db.sh
+
+# ✅ Make it executable
+RUN chmod +x /app/wait-for-db.sh
+
 EXPOSE 8081
-ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# ✅ Change entrypoint to run the script instead of launching the JAR directly
+ENTRYPOINT ["/app/wait-for-db.sh"]
