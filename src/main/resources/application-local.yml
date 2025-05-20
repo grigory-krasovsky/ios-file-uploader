@@ -8,10 +8,19 @@ spring:
   application:
     name: ios-file-uploader
   datasource:
-    url: jdbc:postgresql://localhost:5433/ios-file-uploader
+    url: jdbc:postgresql://localhost:5433/ios-file-uploader?autoReconnect=true
     username: admin
     password: admin
     driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000 # 30 seconds
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 600000 # 10 minutes
+      max-lifetime: 1800000 # 30 minutes
+      connection-test-query: SELECT 1
+      auto-commit: true
+      initialization-fail-timeout: 30000
     jpa:
       hibernate:
         ddl-auto: validate
@@ -28,6 +37,8 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     clean-disabled: true
+    connect-retries: 10           # Number of retries
+    connect-retries-interval: 5s  # Interval between retries
 grpc:
   client:
     file-storage:
