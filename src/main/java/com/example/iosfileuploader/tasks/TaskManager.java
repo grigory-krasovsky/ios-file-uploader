@@ -21,16 +21,16 @@ public class TaskManager {
     FileDownloadUrlScraper fileDownloadUrlScraper;
     @Scheduled(fixedDelay = 10L, timeUnit = TimeUnit.MINUTES)
     public void getFreshGuids() {
-        System.out.println("start");
+        System.out.println("start getFreshGuids");
         SharedAlbum sharedAlbum = sharedAlbumService.findAllEnabled().stream().findAny().orElseThrow(RuntimeException::new);
         fileDownloadUrlScraper.storeFilesGuids(sharedAlbum);
-        System.out.println("finish");
+        System.out.println("finish getFreshGuids");
     }
 
     @Scheduled(initialDelay = 2L, fixedDelay = 10L, timeUnit = TimeUnit.MINUTES)
     public void uploadFiles() {
-        System.out.println("start");
+        System.out.println("start uploadFiles");
         fileUploader.uploadForEnabledAlbums();
-        System.out.println("finish");
+        System.out.println("finish uploadFiles");
     }
 }
