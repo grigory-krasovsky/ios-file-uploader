@@ -1,17 +1,15 @@
 package com.example.iosfileuploader.adapter.controller;
 
 //import com.example.iosfileuploader.core.service.FileScraper;
+
 import com.example.iosfileuploader.core.service.FileDownloadUrlScraper;
 import com.example.iosfileuploader.core.service.FileUploader;
 import com.example.iosfileuploader.core.service.SharedAlbumService;
-import com.example.iosfileuploader.core.service.impl.FileTransferEngineImpl;
 import com.example.iosfileuploader.domain.entity.SharedAlbum;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.io.IOException;
 
 @RestController
 @RequestMapping("/uploader")
