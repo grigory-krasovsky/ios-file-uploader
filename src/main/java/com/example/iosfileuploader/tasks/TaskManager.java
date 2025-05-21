@@ -22,9 +22,12 @@ public class TaskManager {
     @Scheduled(fixedDelay = 10L, timeUnit = TimeUnit.MINUTES)
     public void getFreshGuids() {
         System.out.println("start getFreshGuids");
-        SharedAlbum sharedAlbum = sharedAlbumService.findAllEnabled().stream().findAny().orElseThrow(RuntimeException::new);
-        fileDownloadUrlScraper.storeFilesGuids(sharedAlbum);
-        System.out.println("finish getFreshGuids");
+        sharedAlbumService.findAllEnabled().forEach(a -> {
+            System.out.println("start for album " + a.getAlbumId());
+            fileDownloadUrlScraper.storeFilesGuids(a);
+            System.out.println("finish for album " + a.getAlbumId());
+
+        });
     }
 
     @Scheduled(initialDelay = 2L, fixedDelay = 10L, timeUnit = TimeUnit.MINUTES)
