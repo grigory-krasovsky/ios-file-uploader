@@ -33,15 +33,6 @@ services:
       - "5433:5433"
     networks:
       - grpc-network-1
-#  playwright:
-#    image: mcr.microsoft.com/playwright/java:v1.43.0-jammy
-#    depends_on:
-#      - app
-#    volumes:
-#      - ./some-shared-dir:/shared
-#    command: tail -f /dev/null  # keep container alive for interaction
-#    networks:
-#      - grpc-network-1
 networks:
   grpc-network-1:
     external: true
