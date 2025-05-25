@@ -34,6 +34,12 @@ RUN apt update && apt install -y \
     libpango-1.0-0 \
     libcairo2 \
     libasound2 \
+    libx11-xcb1\
+    libxcursor1\
+    libgtk-3-0\
+    libpangocairo-1.0-0\
+    libcairo-gobject2\
+    libgdk-pixbuf-2.0-0\
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/target/*.jar app.jar
