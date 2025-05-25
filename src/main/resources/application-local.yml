@@ -37,7 +37,7 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     clean-disabled: true
-    connect-retries: 10           # Number of retries
+    connect-retries: 50           # Number of retries
     connect-retries-interval: 5s  # Interval between retries
 grpc:
   client:
