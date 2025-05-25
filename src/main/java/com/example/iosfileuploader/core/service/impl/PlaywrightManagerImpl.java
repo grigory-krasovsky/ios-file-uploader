@@ -1,5 +1,6 @@
-package com.example.iosfileuploader.core.utils.scraper;
+package com.example.iosfileuploader.core.service.impl;
 
+import com.example.iosfileuploader.core.service.PlaywrightManager;
 import com.example.iosfileuploader.core.service.SharedAlbumService;
 import com.example.iosfileuploader.domain.entity.SharedAlbum;
 import com.microsoft.playwright.*;
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @AllArgsConstructor
-public class PlaywrightManagerImpl {
+public class PlaywrightManagerImpl implements PlaywrightManager {
     SharedAlbumService sharedAlbumService;
 
     public void updateDynamicIcloudUrlPart (SharedAlbum album) {

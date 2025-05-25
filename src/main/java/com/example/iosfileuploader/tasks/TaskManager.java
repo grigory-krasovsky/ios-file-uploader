@@ -3,7 +3,7 @@ package com.example.iosfileuploader.tasks;
 import com.example.iosfileuploader.core.service.FileDownloadUrlScraper;
 import com.example.iosfileuploader.core.service.FileUploader;
 import com.example.iosfileuploader.core.service.SharedAlbumService;
-import com.example.iosfileuploader.core.utils.scraper.PlaywrightManagerImpl;
+import com.example.iosfileuploader.core.service.PlaywrightManager;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -19,12 +19,12 @@ public class TaskManager {
     FileUploader fileUploader;
     SharedAlbumService sharedAlbumService;
     FileDownloadUrlScraper fileDownloadUrlScraper;
-    PlaywrightManagerImpl playwrightManagerImpl;
+    PlaywrightManager playwrightManager;
 
     //todo need to update twice a day
     @Scheduled(fixedDelay = 24L, timeUnit = TimeUnit.HOURS)
     public void updateDynamicUrlParts() {
-        sharedAlbumService.findAllEnabled().forEach(playwrightManagerImpl::updateDynamicIcloudUrlPart);
+        sharedAlbumService.findAllEnabled().forEach(playwrightManager::updateDynamicIcloudUrlPart);
     }
 
     @Scheduled(initialDelay = 4L, fixedDelay = 10L, timeUnit = TimeUnit.MINUTES)
@@ -36,7 +36,7 @@ public class TaskManager {
         });
     }
 
-    @Scheduled(initialDelay = 7L, fixedDelay = 10L, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(fixedDelay = 10L, timeUnit = TimeUnit.MINUTES)
     public void uploadFiles() {
         System.out.println("start uploadFiles");
         fileUploader.uploadForEnabledAlbums();
