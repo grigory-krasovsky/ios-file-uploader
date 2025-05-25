@@ -18,4 +18,5 @@ public class SharedAlbum extends AbstractEntity {
     @NonNull
     String albumId;
     Boolean albumEnabled;
+    String baseUrl;
 }

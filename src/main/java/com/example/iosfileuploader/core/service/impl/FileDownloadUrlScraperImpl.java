@@ -32,9 +32,9 @@ public class FileDownloadUrlScraperImpl implements FileDownloadUrlScraper {
     ProcessedFileService processedFileService;
     HttpRequestService httpRequestService;
     static String FILES_URLS_REQUEST_URL =
-            "https://p113-sharedstreams.icloud.com/%s/sharedstreams/webasseturls";
+            "%s/webasseturls";
     static String ASSETS_GUIDS_REQUEST_URL =
-            "https://p113-sharedstreams.icloud.com/%s/sharedstreams/webstream";
+            "%s/webstream";
     static String ASSET_DOWNLOAD_BASE_URL =  "https://cvws.icloud-content.com%s";
     static String BODY_FOR_GUIDS_REQUST = "{\"streamCtag\":null}";
     static String BODY_FOR_FILES_URLS_REQUST = """
@@ -45,7 +45,7 @@ public class FileDownloadUrlScraperImpl implements FileDownloadUrlScraper {
 
     @Override
     public Set<Pair<String, String>> getFileNamesAndUrls(SharedAlbum album, String fileId) {
-        Set<String> filesUrls = getFilesUrls(album.getAlbumId(), Set.of(fileId));
+        Set<String> filesUrls = getFilesUrls(album, Set.of(fileId));
 
         Set<Pair<String, String>> result = filesUrls.stream().map(url -> {
             String name = parseFileNameFromTempUrl(url);
@@ -62,7 +62,7 @@ public class FileDownloadUrlScraperImpl implements FileDownloadUrlScraper {
 
     @Override
     public void storeFilesGuids(SharedAlbum album) {
-        Set<String> assetsGuilds = getAssetsGuilds(album.getAlbumId());
+        Set<String> assetsGuilds = getAssetsGuilds(album);
         //Todo optimize
         Set<String> freshGuids = assetsGuilds.stream().filter(processedFileService::guidStorageIsPossible).collect(Collectors.toSet());
         List<ProcessedFile> processedFiles = freshGuids.stream().map(guid -> {
@@ -76,23 +76,23 @@ public class FileDownloadUrlScraperImpl implements FileDownloadUrlScraper {
         processedFileService.batchSave(processedFiles);
     }
 
-    private Set<String> getAssetsGuilds(String albumId) {
+    private Set<String> getAssetsGuilds(SharedAlbum album) {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(String.format(ASSETS_GUIDS_REQUEST_URL, albumId)))
+                .uri(URI.create(String.format(ASSETS_GUIDS_REQUEST_URL, album.getBaseUrl())))
                 .POST(HttpRequest.BodyPublishers.ofString(BODY_FOR_GUIDS_REQUST))
                 .build();
 
         return parseAssetsGuids(httpRequestService.getResponse(request));
     }
 
-    private Set<String> getFilesUrls(String albumId, Set<String> assetsGuids) {
+    private Set<String> getFilesUrls(SharedAlbum album, Set<String> assetsGuids) {
 
         String assetsString = String.join("\",\"", assetsGuids);
 
         String requestBody = String.format(BODY_FOR_FILES_URLS_REQUST, assetsString);
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(String.format(FILES_URLS_REQUEST_URL, albumId)))
+                .uri(URI.create(String.format(FILES_URLS_REQUEST_URL, album.getBaseUrl())))
                 .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                 .build();
 
