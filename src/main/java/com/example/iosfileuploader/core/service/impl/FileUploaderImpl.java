@@ -38,7 +38,6 @@ public class FileUploaderImpl implements FileUploader {
 
         System.out.println("Start: " + LocalDateTime.now());
 
-        List<SharedAlbum> enabledAlbums = sharedAlbumService.findAllEnabled();
         Map<SharedAlbum, List<ProcessedFile>> albumFreshGuids = processedFileService.getFreshGuids().stream()
                 .collect(Collectors.groupingBy(ProcessedFile::getSharedAlbum));
 
@@ -46,11 +45,13 @@ public class FileUploaderImpl implements FileUploader {
                 Runtime.getRuntime().availableProcessors()
         );
         albumFreshGuids.forEach((album, guids) -> {
-            List<CompletableFuture<Void>> fileFutures = guids.stream()
-                    .map(file -> CompletableFuture.runAsync(() -> processFileBatch(album, file), executor))
-                    .toList();
+            if (album.getAlbumEnabled()) {
+                List<CompletableFuture<Void>> fileFutures = guids.stream()
+                        .map(file -> CompletableFuture.runAsync(() -> processFileBatch(album, file), executor))
+                        .toList();
 
-            CompletableFuture.allOf(fileFutures.toArray(new CompletableFuture[0])).join();
+                CompletableFuture.allOf(fileFutures.toArray(new CompletableFuture[0])).join();
+            }
         });
 
         executor.shutdown();
