@@ -45,8 +45,8 @@ public class FileUploaderImpl implements FileUploader {
         ExecutorService executor = Executors.newFixedThreadPool(
                 Runtime.getRuntime().availableProcessors()
         );
-        enabledAlbums.forEach(album -> {
-            List<CompletableFuture<Void>> fileFutures = albumFreshGuids.get(album).stream()
+        albumFreshGuids.forEach((album, guids) -> {
+            List<CompletableFuture<Void>> fileFutures = guids.stream()
                     .map(file -> CompletableFuture.runAsync(() -> processFileBatch(album, file), executor))
                     .toList();
 
