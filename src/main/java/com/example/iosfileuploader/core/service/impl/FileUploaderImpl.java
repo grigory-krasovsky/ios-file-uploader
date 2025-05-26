@@ -15,14 +15,12 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,14 +39,14 @@ public class FileUploaderImpl implements FileUploader {
         System.out.println("Start: " + LocalDateTime.now());
 
         List<SharedAlbum> enabledAlbums = sharedAlbumService.findAllEnabled();
-        List<ProcessedFile> filesReadyForDownload = processedFileService.getFreshGuids().stream()
-                .toList();
+        Map<SharedAlbum, List<ProcessedFile>> albumFreshGuids = processedFileService.getFreshGuids().stream()
+                .collect(Collectors.groupingBy(ProcessedFile::getSharedAlbum));
 
         ExecutorService executor = Executors.newFixedThreadPool(
                 Runtime.getRuntime().availableProcessors()
         );
         enabledAlbums.forEach(album -> {
-            List<CompletableFuture<Void>> fileFutures = filesReadyForDownload.stream()
+            List<CompletableFuture<Void>> fileFutures = albumFreshGuids.get(album).stream()
                     .map(file -> CompletableFuture.runAsync(() -> processFileBatch(album, file), executor))
                     .toList();
 

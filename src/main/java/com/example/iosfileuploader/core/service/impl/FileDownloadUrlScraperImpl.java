@@ -37,7 +37,7 @@ public class FileDownloadUrlScraperImpl implements FileDownloadUrlScraper {
             "%s/webstream";
     static String ASSET_DOWNLOAD_BASE_URL =  "https://cvws.icloud-content.com%s";
     static String BODY_FOR_GUIDS_REQUST = "{\"streamCtag\":null}";
-    static String BODY_FOR_FILES_URLS_REQUST = """
+    static String BODY_FOR_FILES_URLS_REQUEST = """
             {
                 "photoGuids": ["%s"]
             }
@@ -89,7 +89,7 @@ public class FileDownloadUrlScraperImpl implements FileDownloadUrlScraper {
 
         String assetsString = String.join("\",\"", assetsGuids);
 
-        String requestBody = String.format(BODY_FOR_FILES_URLS_REQUST, assetsString);
+        String requestBody = String.format(BODY_FOR_FILES_URLS_REQUEST, assetsString);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(String.format(FILES_URLS_REQUEST_URL, album.getBaseUrl())))
