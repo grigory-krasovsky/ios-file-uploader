@@ -27,7 +27,7 @@ public class TaskManager {
         sharedAlbumService.findAllEnabled().forEach(playwrightManager::updateDynamicIcloudUrlPart);
     }
 
-    @Scheduled(initialDelay = 4L, fixedDelay = 10L, timeUnit = TimeUnit.MINUTES)
+//    @Scheduled(initialDelay = 4L, fixedDelay = 10L, timeUnit = TimeUnit.MINUTES)
     public void getFreshGuids() {
         sharedAlbumService.findAllEnabled().forEach(a -> {
             System.out.println("start for album " + a.getAlbumId());
@@ -36,7 +36,7 @@ public class TaskManager {
         });
     }
 
-    @Scheduled(fixedDelay = 10L, timeUnit = TimeUnit.MINUTES)
+//    @Scheduled(fixedDelay = 10L, timeUnit = TimeUnit.MINUTES)
     public void uploadFiles() {
         System.out.println("start uploadFiles");
         fileUploader.uploadForEnabledAlbums();

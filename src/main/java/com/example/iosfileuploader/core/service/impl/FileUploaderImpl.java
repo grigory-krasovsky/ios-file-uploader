@@ -54,11 +54,12 @@ public class FileUploaderImpl implements FileUploader {
         });
 
         executor.shutdown();
-        System.out.println(totalFilesDownloaded.get());
+        System.out.println("Files downloaded " + totalFilesDownloaded.get());
         System.out.println("Finish: " + LocalDateTime.now());
     }
 
     public void processFileBatch(SharedAlbum album, ProcessedFile file) {
+        if (!file.getFileId().equals("34E805E4-1AF0-4005-84DF-8C491B28FC61")) return;
         Long maxSize = systemParameterManager.getParam("fileMaxSize", Long.class);
 
         Tika tika = new Tika();
