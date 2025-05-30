@@ -98,7 +98,7 @@ public class FileUploaderImpl implements FileUploader {
                 .build();
 
         if (fileToTransfer.getData().length > maxSize) {
-            fileTransferEngine.transferFile(fileToTransfer);
+            fileTransferEngine.transferFileStreaming(fileToTransfer);
         } else {
             fileTransferEngine.transferFile(fileToTransfer);
         }

@@ -53,6 +53,8 @@ public class FileTransferEngineImpl implements FileTransferEngine {
 
         StreamResponseHandler handler = new LoggerResponseHandler();
         Integer chunkSize = systemParameterManager.getParam("chunkSize", Integer.class);
+        System.out.println(chunkSize + "cunksize property" + chunkSize );
+
         // Start streaming
         FileChunkSender sender = new FileStreamer(asyncStub).startStreamingUpload(
                 request.getId(),
@@ -68,6 +70,7 @@ public class FileTransferEngineImpl implements FileTransferEngine {
                 int start = i * chunkSize;
                 int end = Math.min(start + chunkSize, data.length);
                 byte[] chunk = Arrays.copyOfRange(data, start, end);
+                System.out.println("actual chunk size: " + chunk.length);
                 sender.sendChunk(chunk, i + 1);
             }
 
