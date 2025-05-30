@@ -41,9 +41,8 @@ public class FileUploaderImpl implements FileUploader {
         Map<SharedAlbum, List<ProcessedFile>> albumFreshGuids = processedFileService.getFreshGuids().stream()
                 .collect(Collectors.groupingBy(ProcessedFile::getSharedAlbum));
 
-        ExecutorService executor = Executors.newFixedThreadPool(
-                Runtime.getRuntime().availableProcessors()
-        );
+        ExecutorService executor = Executors.newFixedThreadPool(32); // even 16 could be enough
+
         albumFreshGuids.forEach((album, guids) -> {
             if (album.getAlbumEnabled()) {
                 List<CompletableFuture<Void>> fileFutures = guids.stream()
