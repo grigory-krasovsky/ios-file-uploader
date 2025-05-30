@@ -59,7 +59,7 @@ public class FileUploaderImpl implements FileUploader {
     }
 
     public void processFileBatch(SharedAlbum album, ProcessedFile file) {
-        if (!file.getFileId().equals("34E805E4-1AF0-4005-84DF-8C491B28FC61")) return;
+//        if (!file.getFileId().equals("34E805E4-1AF0-4005-84DF-8C491B28FC61")) return;
         Long maxSize = systemParameterManager.getParam("fileMaxSize", Long.class);
 
         Tika tika = new Tika();
