@@ -97,11 +97,12 @@ public class FileUploaderImpl implements FileUploader {
                 .data(asset.getSecond())
                 .build();
 
-        if (fileToTransfer.getData().length > maxSize) {
-            fileTransferEngine.transferFileStreaming(fileToTransfer);
-        } else {
-            fileTransferEngine.transferFile(fileToTransfer);
-        }
+//        if (fileToTransfer.getData().length > maxSize) {
+//            fileTransferEngine.transferFileStreaming(fileToTransfer);
+//        } else {
+//            fileTransferEngine.transferFile(fileToTransfer);
+//        }
+        fileTransferEngine.transferFile(fileToTransfer);
         processedFileService.create(ProcessedFile.builder()
                 .status(FileTransferStatus.FILE_BATCH_TRANSFER_SUCCESS)
                 .sharedAlbum(album)
