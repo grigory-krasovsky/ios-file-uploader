@@ -33,7 +33,7 @@ public class FileUploaderImpl implements FileUploader {
     FileTransferEngine fileTransferEngine;
     HttpRequestService httpRequestService;
     SystemParameterManager systemParameterManager;
-    private final AtomicInteger totalFilesDownloaded = new AtomicInteger(0);
+    private final AtomicInteger totalFilesInAlbum = new AtomicInteger(0);
     public void uploadForEnabledAlbums() {
 
         System.out.println("Start: " + LocalDateTime.now());
@@ -42,6 +42,10 @@ public class FileUploaderImpl implements FileUploader {
                 .collect(Collectors.groupingBy(ProcessedFile::getSharedAlbum));
 
         ExecutorService executor = Executors.newFixedThreadPool(32); // even 16 could be enough
+
+        albumFreshGuids.forEach((album, guids) -> {
+            System.out.printf("Album %s has %s fresh guids%n", album.getAlbumId(), guids.size());
+        });
 
         albumFreshGuids.forEach((album, guids) -> {
             if (album.getAlbumEnabled()) {
@@ -54,7 +58,7 @@ public class FileUploaderImpl implements FileUploader {
         });
 
         executor.shutdown();
-        System.out.println("Files downloaded " + totalFilesDownloaded.get());
+        System.out.println("Files in album " + totalFilesInAlbum.get());
         System.out.println("Finish: " + LocalDateTime.now());
     }
 
@@ -72,7 +76,7 @@ public class FileUploaderImpl implements FileUploader {
                     return Pair.of(nameUrl.getFirst(), data);
                 })
                 .toList();
-        totalFilesDownloaded.addAndGet(namesUrls.size());
+        totalFilesInAlbum.addAndGet(namesUrls.size());
 
         processedFileService.create(ProcessedFile.builder()
                 .status(FileTransferStatus.FILE_BATCH_DOWNLOAD_SUCCESS)
