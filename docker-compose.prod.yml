@@ -16,6 +16,11 @@ services:
         condition: service_healthy
     networks:
       - grpc-network-1
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
   db:
     image: postgres:15-alpine
     command: ["postgres", "-p", "5433"]
@@ -34,6 +39,11 @@ services:
       - "5433:5433"
     networks:
       - grpc-network-1
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 networks:
   grpc-network-1:
     external: true
