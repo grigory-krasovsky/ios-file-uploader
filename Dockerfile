@@ -14,33 +14,17 @@ RUN mvn package -DskipTests
 FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
-RUN apt update && apt install -y \
-    libnss3 \
-    libnspr4 \
-    libdbus-1-3 \
-    libatk1.0-0 \
-    libatk-bridge2.0-0 \
-    libcups2 \
-    libxcb1 \
-    libxkbcommon0 \
-    libatspi2.0-0 \
-    libx11-6 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxext6 \
-    libxfixes3 \
-    libxrandr2 \
-    libgbm1 \
-    libpango-1.0-0 \
-    libcairo2 \
-    libasound2 \
-    libx11-xcb1\
-    libxcursor1\
-    libgtk-3-0\
-    libpangocairo-1.0-0\
-    libcairo-gobject2\
-    libgdk-pixbuf-2.0-0\
-    && rm -rf /var/lib/apt/lists/*
+# Install ONLY required libs for Playwright
+RUN apk add --no-cache \
+    libstdc++ \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    # Clean cache to reduce size
+    && rm -rf /var/cache/apk/*
 
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8081
