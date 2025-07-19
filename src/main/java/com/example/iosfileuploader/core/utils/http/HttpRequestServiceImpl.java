@@ -14,6 +14,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -33,10 +34,11 @@ public class HttpRequestServiceImpl implements HttpRequestService {
     }
 
     @Override
-    public UUID createNewFileLocation() {
+    public UUID createNewFileLocation(UUID mainFileLocationUuid) {
         String baseUrl = systemParameterManager.getParam("fileStorageBaseUrl", String.class);
 
         FileLocationCreateRequest body = FileLocationCreateRequest.createNew();
+        body.setMainFileLocationUuid(mainFileLocationUuid);
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonBody;
         try {

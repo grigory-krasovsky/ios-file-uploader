@@ -20,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,6 +35,8 @@ public class FileUploaderImpl implements FileUploader {
     HttpRequestService httpRequestService;
     SystemParameterManager systemParameterManager;
     private final AtomicInteger totalFilesInAlbum = new AtomicInteger(0);
+    private final AtomicInteger totalFilesTransferred = new AtomicInteger(0);
+
     public void uploadForEnabledAlbums() {
 
         System.out.println("Start: " + LocalDateTime.now());
@@ -84,14 +87,27 @@ public class FileUploaderImpl implements FileUploader {
                 .fileId(file.getFileId())
                 .build());
 
-        //we do not need previews
-        Pair<String, byte[]> asset = fileBatch.stream()
-                .max(Comparator.comparing(pair -> pair.getSecond().length))
-                .orElseThrow(() -> new RuntimeException("Batch is empty"));
+        final AtomicReference<UUID> mainFileLocationUuid = new AtomicReference<>(null);
+        fileBatch.stream()
+                .sorted(Comparator.<Pair<String, byte[]>>comparingLong(
+                        f -> f.getSecond().length
+                ).reversed())
+                .forEach(singleFile -> {
+                    UUID uuid = transferSingleFile(singleFile, mainFileLocationUuid.get());
+                    mainFileLocationUuid.compareAndSet(null, uuid);
+                });
 
-        UUID newFileLocationUuid = httpRequestService.createNewFileLocation();
+        processedFileService.create(ProcessedFile.builder()
+                .status(FileTransferStatus.FILE_BATCH_TRANSFER_SUCCESS)
+                .sharedAlbum(album)
+                .fileId(file.getFileId())
+                .build());
+    }
 
-        String contentType = tika.detect(asset.getSecond());
+    private UUID transferSingleFile(Pair<String, byte[]> asset, UUID mainFileLocationUuid) {
+        UUID newFileLocationUuid = httpRequestService.createNewFileLocation(mainFileLocationUuid);
+
+        String contentType = new Tika().detect(asset.getSecond());
         String fileName = asset.getFirst();
 
         FileTransferRequest fileToTransfer = FileTransferRequest.builder()
@@ -100,17 +116,8 @@ public class FileUploaderImpl implements FileUploader {
                 .fileName(fileName)
                 .data(asset.getSecond())
                 .build();
-
-//        if (fileToTransfer.getData().length > maxSize) {
-//            fileTransferEngine.transferFileStreaming(fileToTransfer);
-//        } else {
-//            fileTransferEngine.transferFile(fileToTransfer);
-//        }
         fileTransferEngine.transferFile(fileToTransfer);
-        processedFileService.create(ProcessedFile.builder()
-                .status(FileTransferStatus.FILE_BATCH_TRANSFER_SUCCESS)
-                .sharedAlbum(album)
-                .fileId(file.getFileId())
-                .build());
+        totalFilesTransferred.addAndGet(1);
+        return newFileLocationUuid;
     }
 }

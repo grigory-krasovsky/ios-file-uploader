@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public interface HttpRequestService {
     String getResponse(HttpRequest request);
-    UUID createNewFileLocation();
+    UUID createNewFileLocation(UUID mainFileLocationUuid);
 
     void checkFileSize(String url);
 }

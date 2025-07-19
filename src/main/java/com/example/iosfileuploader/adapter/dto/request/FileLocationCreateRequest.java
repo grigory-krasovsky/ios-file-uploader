@@ -3,14 +3,20 @@ package com.example.iosfileuploader.adapter.dto.request;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Builder
 @Getter
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class FileLocationCreateRequest {
 
     FileMetadataDto fileMetadataDTO;
+    UUID mainFileLocationUuid;
 
     @Builder
     @Getter
